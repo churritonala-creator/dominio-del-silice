@@ -46,8 +46,8 @@
 </head>
 <body>
 <header>
-  <h1>El <span>Amatista</span> — Calculadora del Dominio del Sílice</h1>
-  <div class="sub">Mataescamas de Cuarzo · <i>Princeps Pulveris</i> · <i>Knyaz Prakha</i></div>
+  <h1>Artyom, <span>Príncipe del Polvo</span> — Calculadora del Dominio del Sílice</h1>
+  <div class="sub">El Amatista · Mataescamas de Cuarzo · <i>Princeps Pulveris</i> · <i>Rykjǫfurr</i> · <i>Knyaz Prakha</i></div>
 </header>
 
 <div class="wrap">
@@ -84,7 +84,7 @@ const CALCS=[
     {k:'N', l:'Anillos SMES en paralelo', min:1, max:8, step:1, val:1, u:'aros'},
     {k:'I', l:'Corriente por anillo (I)', min:0.1, max:5, step:0.1, val:1, u:'MA'},
     {k:'Lp',l:"Gradiente de inductancia (L')", min:0.2, max:1.2, step:0.05, val:0.5, u:'µH/m'},
-    {k:'d', l:'Longitud de rieles (d)', min:1, max:80, step:1, val:10, u:'m'},
+    {k:'d', l:'Longitud de rieles (d)', min:1, max:80, step:1, val:36, u:'m'},
     {k:'m', l:'Masa de la lanza (m)', min:0.5, max:8, step:0.5, val:2, u:'kg'},
   ],
   calc:(v)=>{
@@ -113,12 +113,12 @@ const CALCS=[
   formula:"E = ½·L·I²   (energía guardada en el campo)",
   inputs:[
     {k:'N', l:'Nº de anillos', min:1, max:8, step:1, val:1, u:'aros'},
-    {k:'L', l:'Inductancia por anillo (L)', min:0.5, max:50, step:0.5, val:10, u:'H'},
+    {k:'L', l:'Inductancia por anillo (L)', min:1, max:500, step:1, val:18, u:'µH'},
     {k:'I', l:'Corriente por anillo (I)', min:0.1, max:5, step:0.1, val:1, u:'MA'},
   ],
   calc:(v)=>{
     const I=v.I*1e6;
-    const Epar=0.5*v.L*I*I;        // J por anillo
+    const Epar=0.5*(v.L*1e-6)*I*I;   // J por anillo
     const E=Epar*v.N;
     return{
       out:[
@@ -127,7 +127,37 @@ const CALCS=[
         ['Equivalente TNT', fmt(E/TNT,2)+' kg'],
         ['Disparos de Lanza (9 MJ c/u)', fmt(E/9e6,1)],
       ],
-      cmp:'Más vueltas (L) o corriente (I) = más reserva. Cuidado con la corriente crítica → quench.'
+      cmp:'¿De dónde salen L e I? Usa la tarjeta "Diseño del Anillo". Cuidado con la corriente crítica → quench.'
+    };
+  }
+},
+{
+  id:'design', titulo:'Diseño del Anillo — Inductancia (L) y Corriente (I)', tag:'Geometría · De dónde salen L e I',
+  formula:"L = μ₀·N²·A / l   (A = π·r²)    |    I_máx = Jc · A_hilo",
+  inputs:[
+    {k:'N', l:'Vueltas de la bobina (N)', min:1, max:300, step:1, val:6, u:'vueltas'},
+    {k:'r', l:'Radio de la bobina (r)', min:0.1, max:5, step:0.1, val:0.5, u:'m'},
+    {k:'l', l:'Longitud de la bobina (l)', min:0.2, max:10, step:0.1, val:2, u:'m'},
+    {k:'Jc',l:'Densidad de corriente crítica (Jc)', min:10, max:500, step:5, val:130, u:'A/mm²'},
+    {k:'rw',l:'Radio del conductor/hilo (rw)', min:1, max:150, step:1, val:50, u:'mm'},
+  ],
+  calc:(v)=>{
+    const mu0=1.2566e-6;
+    const A=Math.PI*v.r*v.r;          // m² sección de la bobina
+    const L=mu0*v.N*v.N*A/v.l;        // H
+    const Aw=Math.PI*v.rw*v.rw;       // mm² sección del hilo
+    const I=v.Jc*Aw;                  // A
+    const E=0.5*L*I*I;                // J
+    return{
+      out:[
+        ['Área de la bobina (A)', fmt(A,2)+' m²'],
+        ['Inductancia (L)', fmt(L*1e6,1)+' µH', true],
+        ['Sección del hilo', fmt(Aw,0)+' mm²'],
+        ['Corriente máx (I)', fmt(I/1e6,2)+' MA', true],
+        ['Energía guardada', fmt(E/1e6,2)+' MJ', true, true],
+        ['Equivalente TNT', fmt(E/TNT,2)+' kg'],
+      ],
+      cmp:'L sube con N² y con el área (radio²). I sube con la sección del hilo. Más grande = más de todo. Lleva estos L e I a las otras tarjetas.'
     };
   }
 },
@@ -223,13 +253,13 @@ const CALCS=[
   formula:"E_total = Σ ½·L·I²    |    P_pico = E / Δt",
   inputs:[
     {k:'N', l:'Anillos volcados', min:1, max:8, step:1, val:3, u:'aros'},
-    {k:'L', l:'Inductancia por anillo', min:0.5, max:50, step:0.5, val:10, u:'H'},
+    {k:'L', l:'Inductancia por anillo', min:1, max:500, step:1, val:18, u:'µH'},
     {k:'I', l:'Corriente por anillo', min:0.1, max:5, step:0.1, val:1, u:'MA'},
     {k:'dt', l:'Tiempo de descarga (Δt)', min:0.1, max:50, step:0.1, val:1, u:'ms'},
   ],
   calc:(v)=>{
     const I=v.I*1e6;
-    const E=v.N*0.5*v.L*I*I;
+    const E=v.N*0.5*(v.L*1e-6)*I*I;
     const P=E/(v.dt/1000);
     return{
       out:[
