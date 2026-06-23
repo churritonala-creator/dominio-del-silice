@@ -91,6 +91,39 @@
     Con varios anillos subes a <b>misil / bomba aérea</b>. Lo nuclear queda lejos — y bien, así sigue siendo jugable.</div>
   </div>
 
+  <div class="card wide" style="margin-top:22px">
+    <div class="tag">Logística · Día soleado</div>
+    <h2>Tiempos de preparación y carga</h2>
+    <div class="formula">Asalto = 6 s · Carga solar de combate ≈ 374 kW (1.200 m²) · Campo completo ≈ 6,2 MW (20.000 m²)</div>
+
+    <h3 style="color:var(--violet2);font-size:14px;margin:14px 0 4px">Montaje (alzar/formar)</h3>
+    <table class="tnt">
+      <tr><th>Elemento</th><th>Tiempo</th><th>Nota</th></tr>
+      <tr><td>Sentir la Tierra (red piezo)</td><td>~1 asalto</td><td>sembrar microcristales, casi instantáneo</td></tr>
+      <tr><td>Muro / coraza de cuarzo</td><td>instantáneo</td><td>se alza del suelo en el acto</td></tr>
+      <tr><td>Rieles de la Lanza (~36 m)</td><td>~1 asalto</td><td>dos rieles + comprimir a fase metálica</td></tr>
+      <tr><td>Anillo SMES (cada uno)</td><td>~1 asalto</td><td>bobina + presión geomántica</td></tr>
+      <tr><td>Venas superconductoras + circuitos</td><td>~2 asaltos</td><td>tender la red de la zona</td></tr>
+      <tr><td>Manto Solar HJT (combate, 1.200 m²)</td><td>~2 asaltos</td><td>desplegar celdas y orientarlas</td></tr>
+      <tr><td>Manto Solar completo (20.000 m²)</td><td>~3-5 min</td><td>alfombrar toda la zona</td></tr>
+      <tr><td>Zona Divina completa (lazo cerrado)</td><td>~5 asaltos (~30 s)</td><td>montaje básico; sigue mejorando con el tiempo</td></tr>
+      <tr><td>Meteoro: vitrificar+compactar monolito 84 t</td><td>~10-30 min</td><td>obra, no acción de combate</td></tr>
+      <tr><td>Meteoro: rieles colosales</td><td>~30-60 min</td><td>obra de asedio</td></tr>
+    </table>
+
+    <h3 style="color:var(--violet2);font-size:14px;margin:16px 0 4px">Carga de energía (sol pleno)</h3>
+    <table class="tnt">
+      <tr><th>Objetivo</th><th>Energía</th><th>Carga combate (374 kW)</th><th>Campo completo (6,2 MW)</th></tr>
+      <tr class="hl"><td>1 anillo (1 disparo de Lanza)</td><td>9 MJ</td><td>~24 s (4 asaltos)</td><td>~1,5 s</td></tr>
+      <tr><td>Reserva 5 anillos</td><td>45 MJ</td><td>~2 min</td><td>~7 s</td></tr>
+      <tr><td>Lanza a plena carga</td><td>90 MJ</td><td>~4 min</td><td>~14 s</td></tr>
+      <tr><td>Bomba aérea (100 kg TNT)</td><td>418 MJ</td><td>~19 min</td><td>~67 s</td></tr>
+      <tr><td>Meteoro 84 t a 10 km/s</td><td>4.184 GJ (1 kt)</td><td>~129 días</td><td>~7,8 días</td></tr>
+    </table>
+    <div class="note">Lección: los golpes de duelo se cargan en <b>segundos/asaltos</b>. El Meteoro de kilotón es un proyecto de
+    <b>días</b> incluso con todo el campo al sol — por eso es un arma de fin de campaña, no de combate. De noche la carga solar es ~0.</div>
+  </div>
+
   <footer>
     Sistema personalizado de Anima · Dominio sobre Sílice (SiO₂) y Silicio (Si) · radio 80&nbsp;m<br>
     Física real, escalado de fantasía. Ver <a href="MANUAL.md">MANUAL.md</a>.
@@ -105,6 +138,13 @@ function fmt(x,dec=2){
   const a=Math.abs(x);
   if(a!==0&&(a<1e-2||a>=1e6))return x.toExponential(dec);
   return x.toLocaleString('es',{maximumFractionDigits:dec});
+}
+function fmtTime(s){
+  if(!isFinite(s))return"—";
+  if(s<60)return fmt(s,0)+' s ('+fmt(s/6,1)+' asaltos)';
+  if(s<3600)return fmt(s/60,1)+' min';
+  if(s<86400)return fmt(s/3600,1)+' h';
+  return fmt(s/86400,1)+' días';
 }
 const TNT=4.184e6;            // J por kg de TNT
 const SOUND_QUARTZ=5760;     // m/s velocidad del sonido en cuarzo
@@ -306,6 +346,33 @@ const CALCS=[
         ['Potencia pico', fmt(P/1e9,2)+' GW', true],
       ],
       cmp:'Te deja a cero. Fríe magia eléctrica y dispara todos los cristales sembrados.'
+    };
+  }
+},
+{
+  id:'meteoro', titulo:'Meteoro de Cuarzo — Bombardeo cinético', tag:'Cinético masivo · Equivalente a nuclear',
+  formula:"E = ½·m·v²    |    1 kt = 4,184×10¹² J    |    t = E / P_solar",
+  inputs:[
+    {k:'m', l:'Masa del monolito (m)', min:1, max:200, step:1, val:84, u:'t'},
+    {k:'v', l:'Velocidad de impacto (v)', min:1, max:30, step:0.5, val:10, u:'km/s'},
+    {k:'P', l:'Campo solar (zona completa)', min:100, max:20000, step:100, val:6240, u:'kW'},
+  ],
+  calc:(v)=>{
+    const m=v.m*1000;              // kg
+    const vel=v.v*1000;            // m/s
+    const E=0.5*m*vel*vel;         // J
+    const tnt=E/TNT;               // kg TNT
+    const kt=tnt/1e6;              // kilotones
+    const t=E/(v.P*1000);          // s de carga solar
+    return{
+      out:[
+        ['Energía cinética', fmt(E/1e9,1)+' GJ', true],
+        ['Equivalente TNT', fmt(tnt/1000,1)+' toneladas'],
+        ['En kilotones', fmt(kt,3)+' kt', true, true],
+        ['= disparos de Lanza (9 MJ)', fmt(E/9e6,0)],
+        ['Tiempo de carga solar', fmtTime(t), true],
+      ],
+      cmp:'Obra de asedio, no golpe de duelo. Cargar kilotones pide días de sol o decenas de anillos. Daño cinético puro: ignora resistencias mágicas.'
     };
   }
 },
