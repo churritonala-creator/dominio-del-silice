@@ -6,15 +6,19 @@
 <title>El Amatista — Calculadora del Dominio del Sílice</title>
 <style>
   :root{
-    --bg:#120a1f; --bg2:#1b1030; --card:#21143b; --line:#3a2660;
-    --violet:#a86bff; --violet2:#c9a3ff; --amethyst:#8a4fff;
-    --gold:#e8c66b; --text:#e9e1f7; --dim:#a594c4; --good:#7fffc4; --warn:#ff8a8a;
+    /* acero · viento · tierra */
+    --bg:#0e1216; --bg2:#161d23; --card:#1a232b; --line:#33414d;
+    --violet:#8fa6b8;   /* acero */
+    --violet2:#c5d4e0;  /* acero claro / viento */
+    --amethyst:#5f7d94; /* acero profundo */
+    --gold:#c79a5a;     /* bronce / tierra */
+    --text:#e6ecf1; --dim:#8c9aa6; --good:#9fe6c0; --warn:#ff9b8a;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:radial-gradient(1200px 600px at 70% -10%, #2a1550 0%, var(--bg) 60%);
+  body{margin:0;background:radial-gradient(1200px 600px at 70% -10%, #20303c 0%, var(--bg) 60%);
        color:var(--text);font:15px/1.55 "Segoe UI",system-ui,sans-serif;padding:0 0 80px}
   header{padding:34px 20px 22px;text-align:center;border-bottom:1px solid var(--line);
-         background:linear-gradient(180deg,rgba(138,79,255,.12),transparent)}
+         background:linear-gradient(180deg,rgba(143,166,184,.12),transparent)}
   h1{margin:0;font-size:30px;letter-spacing:.5px}
   h1 span{color:var(--violet)}
   .sub{color:var(--dim);margin-top:6px;font-size:14px}
@@ -42,6 +46,14 @@
   footer{text-align:center;color:var(--dim);font-size:12px;margin-top:40px}
   a{color:var(--violet)}
   .intro{color:var(--dim);max-width:760px;margin:18px auto 0;text-align:center;font-size:14px}
+  table.tnt{width:100%;border-collapse:collapse;margin-top:6px;font-size:13.5px}
+  table.tnt th,table.tnt td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+  table.tnt th{color:var(--violet2);font-weight:600}
+  table.tnt td:first-child{color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap}
+  table.tnt td:nth-child(2){color:var(--dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+  table.tnt tr.hl{background:rgba(199,154,90,.14)}
+  table.tnt tr.hl td{color:var(--gold)}
+  .wide{grid-column:1/-1}
 </style>
 </head>
 <body>
@@ -55,6 +67,29 @@
   equivalente en TNT y tiempos de carga se recalculan en vivo. Valores por defecto = los del manual.</p>
 
   <div class="grid" id="grid"></div>
+
+  <div class="card wide" style="margin-top:22px">
+    <div class="tag">Referencia</div>
+    <h2>Equivalencias de TNT — ¿qué tan grande es de verdad?</h2>
+    <div class="formula">1 kg de TNT = 4,184 MJ</div>
+    <table class="tnt">
+      <tr><th>TNT</th><th>Energía</th><th>Equivale a…</th></tr>
+      <tr><td>1 g</td><td>0,004 MJ</td><td>petardo grande · cartucho de escopeta</td></tr>
+      <tr><td>60 g</td><td>0,25 MJ</td><td>carga de una granada de mano</td></tr>
+      <tr><td>250 g</td><td>1,05 MJ</td><td>un cartucho de dinamita</td></tr>
+      <tr><td>1 kg</td><td>4,18 MJ</td><td>proyectil de mortero</td></tr>
+      <tr class="hl"><td>2,15 kg</td><td>9 MJ</td><td><b>disparo base de la Lanza del Juicio (1 anillo)</b></td></tr>
+      <tr><td>6 kg</td><td>25 MJ</td><td>proyectil de artillería pesada</td></tr>
+      <tr><td>21,5 kg</td><td>90 MJ</td><td>Lanza a plena carga (varios anillos) · misil ligero</td></tr>
+      <tr><td>100 kg</td><td>418 MJ</td><td>bomba aérea media — agujerea una muralla</td></tr>
+      <tr><td>500 kg</td><td>2.092 MJ</td><td>bomba de demolición — derriba una casa</td></tr>
+      <tr><td>1 t</td><td>4.184 MJ</td><td>derriba un edificio pequeño</td></tr>
+      <tr><td>4 t</td><td>16.700 MJ</td><td>la mayor bomba convencional jamás usada</td></tr>
+      <tr><td>1 kt (1.000 t)</td><td>4,18 millones MJ</td><td>arma nuclear táctica pequeña (otra liga)</td></tr>
+    </table>
+    <div class="note">La fila resaltada marca dónde cae tu disparo por defecto: nivel <b>proyectil de tanque / artillería</b>.
+    Con varios anillos subes a <b>misil / bomba aérea</b>. Lo nuclear queda lejos — y bien, así sigue siendo jugable.</div>
+  </div>
 
   <footer>
     Sistema personalizado de Anima · Dominio sobre Sílice (SiO₂) y Silicio (Si) · radio 80&nbsp;m<br>
@@ -115,19 +150,22 @@ const CALCS=[
     {k:'N', l:'Nº de anillos', min:1, max:8, step:1, val:1, u:'aros'},
     {k:'L', l:'Inductancia por anillo (L)', min:1, max:500, step:1, val:18, u:'µH'},
     {k:'I', l:'Corriente por anillo (I)', min:0.1, max:5, step:0.1, val:1, u:'MA'},
+    {k:'P', l:'Potencia solar entrante (P)', min:10, max:5000, step:10, val:374, u:'kW'},
   ],
   calc:(v)=>{
     const I=v.I*1e6;
     const Epar=0.5*(v.L*1e-6)*I*I;   // J por anillo
     const E=Epar*v.N;
+    const t=E/(v.P*1000);            // s carga completa desde cero
     return{
       out:[
         ['Energía por anillo', fmt(Epar/1e6,2)+' MJ'],
         ['Reserva total', fmt(E/1e6,2)+' MJ', true, true],
         ['Equivalente TNT', fmt(E/TNT,2)+' kg'],
         ['Disparos de Lanza (9 MJ c/u)', fmt(E/9e6,1)],
+        ['Carga completa (desde 0)', fmt(t,0)+' s  ·  '+fmt(t/6,1)+' asaltos  ·  '+fmt(t/60,1)+' min', true],
       ],
-      cmp:'¿De dónde salen L e I? Usa la tarjeta "Diseño del Anillo". Cuidado con la corriente crítica → quench.'
+      cmp:'Potencia solar por defecto = la de la tarjeta HJT (374 kW). De noche P≈0 → solo piezo (lentísimo).'
     };
   }
 },
